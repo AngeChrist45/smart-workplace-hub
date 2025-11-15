@@ -6,7 +6,8 @@ import {
   Clock, 
   CheckSquare, 
   UserCircle,
-  Menu
+  Menu,
+  QrCode
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +17,7 @@ const navigation = [
   { name: "Présences", href: "/attendance", icon: Clock },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "CRM", href: "/clients", icon: UserCircle },
+  { name: "Pointage QR", href: "/qr-scanner", icon: QrCode },
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {

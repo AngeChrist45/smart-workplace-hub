@@ -9,6 +9,7 @@ import Employees from "./pages/Employees";
 import Attendance from "./pages/Attendance";
 import Tasks from "./pages/Tasks";
 import Clients from "./pages/Clients";
+import QRScanner from "./pages/QRScanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/clients" element={<Clients />} />
+            <Route path="/qr-scanner" element={<QRScanner />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
