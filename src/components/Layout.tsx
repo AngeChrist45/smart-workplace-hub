@@ -1,13 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, 
-  Users, 
-  Clock, 
-  CheckSquare, 
-  UserCircle,
-  Menu,
-  QrCode
+  LayoutDashboard, Users, Clock, CheckSquare, UserCircle, Menu, QrCode,
+  FileText, Wallet, Package, MessageSquare, BarChart3, Settings
 } from "lucide-react";
 import { useState } from "react";
 
@@ -17,7 +12,12 @@ const navigation = [
   { name: "Présences", href: "/attendance", icon: Clock },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "CRM", href: "/clients", icon: UserCircle },
-  { name: "Pointage QR", href: "/qr-scanner", icon: QrCode },
+  { name: "Factures", href: "/invoices", icon: FileText },
+  { name: "Paie", href: "/payslips", icon: Wallet },
+  { name: "Stock", href: "/inventory", icon: Package },
+  { name: "Messagerie", href: "/messaging", icon: MessageSquare },
+  { name: "Rapports", href: "/reports", icon: BarChart3 },
+  { name: "Paramètres", href: "/settings", icon: Settings },
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
