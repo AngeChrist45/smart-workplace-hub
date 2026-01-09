@@ -12,6 +12,17 @@ import { exportClientsToPDF, exportClientsToExcel } from "@/utils/exports";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExcelImport } from "@/components/ExcelImport";
+
+const clientColumns = [
+  { key: "name", label: "Nom", required: true },
+  { key: "contact", label: "Contact", required: true },
+  { key: "email", label: "Email", required: true },
+  { key: "phone", label: "Téléphone", required: true },
+  { key: "status", label: "Statut", required: false },
+  { key: "value", label: "Valeur", required: false },
+  { key: "company", label: "Entreprise", required: false },
+];
 
 const initialClients: Client[] = [
   { id: 1, name: "Acme Corporation", contact: "Alice Johnson", status: "Actif", email: "alice@acme.com", phone: "+225 07 10 20 30", lastContact: "2025-11-10", value: "125,000 FCFA", company: "Acme Corp" },
@@ -60,6 +71,36 @@ export default function Clients() {
     setDeleteId(null);
   };
 
+  const handleImportClients = (importedData: Client[]) => {
+    const maxId = clients.length > 0 ? Math.max(...clients.map(c => c.id)) : 0;
+    const newClients = importedData.map((client, index) => ({
+      ...client,
+      id: maxId + index + 1,
+    }));
+    setClients(prev => [...prev, ...newClients]);
+    toast({ title: `${newClients.length} clients importés avec succès` });
+  };
+
+  const parseClientRow = (row: Record<string, any>): Client | null => {
+    const name = row["nom"] || row["name"];
+    const contact = row["contact"];
+    const email = row["email"];
+    
+    if (!name || !email) return null;
+    
+    return {
+      id: 0,
+      name: String(name),
+      contact: String(contact || name),
+      email: String(email),
+      phone: String(row["téléphone"] || row["telephone"] || row["phone"] || ""),
+      status: (row["statut"] || row["status"] || "Lead") as Client["status"],
+      lastContact: new Date().toISOString().split('T')[0],
+      value: String(row["valeur"] || row["value"] || "0 FCFA"),
+      company: row["entreprise"] || row["company"],
+    };
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -77,6 +118,15 @@ export default function Clients() {
               <DropdownMenuItem onClick={() => exportClientsToExcel(clients)}>Exporter en Excel</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          <ExcelImport<Client>
+            onImport={handleImportClients}
+            expectedColumns={clientColumns}
+            templateName="clients"
+            parseRow={parseClientRow}
+            buttonLabel="Importer"
+          />
+          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" onClick={() => setEditingClient(undefined)}><Plus className="h-4 w-4" />Nouveau client</Button>

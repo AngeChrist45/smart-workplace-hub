@@ -12,6 +12,17 @@ import { exportEmployeesToPDF, exportEmployeesToExcel } from "@/utils/exports";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { QRCodeSVG } from "qrcode.react";
+import { ExcelImport } from "@/components/ExcelImport";
+
+const employeeColumns = [
+  { key: "name", label: "Nom", required: true },
+  { key: "role", label: "Poste", required: true },
+  { key: "email", label: "Email", required: true },
+  { key: "phone", label: "Téléphone", required: true },
+  { key: "status", label: "Statut", required: false },
+  { key: "department", label: "Département", required: false },
+  { key: "salary", label: "Salaire", required: false },
+];
 
 const initialEmployees: Employee[] = [
   { id: 1, name: "Marie Kouassi", role: "Développeur Full-Stack", status: "Actif", email: "marie.k@company.com", phone: "+225 07 00 00 01", avatar: "MK", qrCode: "EMP001" },
@@ -64,6 +75,39 @@ export default function Employees() {
     toast({ title: "Employé supprimé" });
     setDeleteId(null);
   };
+
+  const handleImportEmployees = (importedData: Employee[]) => {
+    const maxId = employees.length > 0 ? Math.max(...employees.map(e => e.id)) : 0;
+    const newEmployees = importedData.map((emp, index) => ({
+      ...emp,
+      id: maxId + index + 1,
+      avatar: emp.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
+      qrCode: `EMP${String(maxId + index + 1).padStart(3, '0')}`
+    }));
+    setEmployees(prev => [...prev, ...newEmployees]);
+    toast({ title: `${newEmployees.length} employés importés avec succès` });
+  };
+
+  const parseEmployeeRow = (row: Record<string, any>): Employee | null => {
+    const name = row["nom"] || row["name"];
+    const role = row["poste"] || row["role"];
+    const email = row["email"];
+    const phone = row["téléphone"] || row["telephone"] || row["phone"];
+    
+    if (!name || !email) return null;
+    
+    return {
+      id: 0,
+      name: String(name),
+      role: String(role || "Non défini"),
+      email: String(email),
+      phone: String(phone || ""),
+      status: (row["statut"] || row["status"] || "Actif") as Employee["status"],
+      avatar: "",
+      department: row["département"] || row["department"],
+      salary: row["salaire"] ? Number(row["salaire"]) : row["salary"] ? Number(row["salary"]) : undefined,
+    };
+  };
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
@@ -91,6 +135,14 @@ export default function Employees() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          <ExcelImport<Employee>
+            onImport={handleImportEmployees}
+            expectedColumns={employeeColumns}
+            templateName="employes"
+            parseRow={parseEmployeeRow}
+            buttonLabel="Importer"
+          />
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
