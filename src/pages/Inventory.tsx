@@ -33,6 +33,18 @@ import { Product, StockMovement } from "@/types";
 import { ProductForm } from "@/components/forms/ProductForm";
 import { StockMovementForm } from "@/components/forms/StockMovementForm";
 import { useToast } from "@/hooks/use-toast";
+import { ExcelImport } from "@/components/ExcelImport";
+
+const productColumns = [
+  { key: "name", label: "Nom", required: true },
+  { key: "sku", label: "SKU", required: true },
+  { key: "category", label: "Catégorie", required: true },
+  { key: "quantity", label: "Quantité", required: true },
+  { key: "minStock", label: "Stock Minimum", required: false },
+  { key: "unitPrice", label: "Prix Vente", required: true },
+  { key: "costPrice", label: "Prix Achat", required: false },
+  { key: "supplier", label: "Fournisseur", required: false },
+];
 
 const initialProducts: Product[] = [
   {
@@ -205,6 +217,40 @@ const Inventory = () => {
     toast({ title: "Produit supprimé", description: "Le produit a été supprimé du stock." });
   };
 
+  const handleImportProducts = (importedData: Product[]) => {
+    const maxId = products.length > 0 ? Math.max(...products.map(p => p.id)) : 0;
+    const newProducts = importedData.map((product, index) => {
+      const p = {
+        ...product,
+        id: maxId + index + 1,
+      };
+      p.status = updateProductStatus(p);
+      return p;
+    });
+    setProducts(prev => [...prev, ...newProducts]);
+    toast({ title: `${newProducts.length} produits importés avec succès` });
+  };
+
+  const parseProductRow = (row: Record<string, any>): Product | null => {
+    const name = row["nom"] || row["name"];
+    const sku = row["sku"] || row["référence"];
+    
+    if (!name || !sku) return null;
+    
+    return {
+      id: 0,
+      name: String(name),
+      sku: String(sku),
+      category: String(row["catégorie"] || row["category"] || "Non défini"),
+      quantity: Number(row["quantité"] || row["quantity"] || 0),
+      minStock: Number(row["stock minimum"] || row["minstock"] || row["min stock"] || 5),
+      unitPrice: Number(row["prix vente"] || row["unitprice"] || row["prix"] || 0),
+      costPrice: Number(row["prix achat"] || row["costprice"] || row["coût"] || 0),
+      supplier: row["fournisseur"] || row["supplier"],
+      status: "En stock",
+    };
+  };
+
   const getStatusBadge = (status: Product["status"]) => {
     const styles = {
       "En stock": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -229,7 +275,15 @@ const Inventory = () => {
           <h1 className="text-2xl font-bold text-foreground">Gestion de Stock</h1>
           <p className="text-muted-foreground">Gérez votre inventaire et mouvements de stock</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <ExcelImport<Product>
+            onImport={handleImportProducts}
+            expectedColumns={productColumns}
+            templateName="produits"
+            parseRow={parseProductRow}
+            buttonLabel="Importer"
+          />
+          
           <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
