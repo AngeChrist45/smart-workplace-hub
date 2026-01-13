@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, Users, Clock, CheckSquare, UserCircle, Menu,
-  FileText, Wallet, Package, MessageSquare, BarChart3, Settings, LogOut
+  FileText, Wallet, Package, MessageSquare, BarChart3, Settings
 } from "lucide-react";
 import { useState } from "react";
 import "./Sidebar.css";
