@@ -1,23 +1,50 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, Users, Clock, CheckSquare, UserCircle, Menu, QrCode,
-  FileText, Wallet, Package, MessageSquare, BarChart3, Settings
+  LayoutDashboard, Users, Clock, CheckSquare, UserCircle, Menu,
+  FileText, Wallet, Package, MessageSquare, BarChart3, Settings, LogOut
 } from "lucide-react";
 import { useState } from "react";
+import "./Sidebar.css";
 
-const navigation = [
-  { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
-  { name: "Employés", href: "/employees", icon: Users },
-  { name: "Présences", href: "/attendance", icon: Clock },
-  { name: "Tâches", href: "/tasks", icon: CheckSquare },
-  { name: "CRM", href: "/clients", icon: UserCircle },
-  { name: "Factures", href: "/invoices", icon: FileText },
-  { name: "Paie", href: "/payslips", icon: Wallet },
-  { name: "Stock", href: "/inventory", icon: Package },
-  { name: "Messagerie", href: "/messaging", icon: MessageSquare },
-  { name: "Rapports", href: "/reports", icon: BarChart3 },
-  { name: "Paramètres", href: "/settings", icon: Settings },
+// Navigation groupée pour plus de clarté
+const navigationGroups = [
+  {
+    label: "Principal",
+    items: [
+      { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
+    ]
+  },
+  {
+    label: "Ressources Humaines",
+    items: [
+      { name: "Employés", href: "/employees", icon: Users },
+      { name: "Présences", href: "/attendance", icon: Clock },
+      { name: "Bulletins de paie", href: "/payslips", icon: Wallet },
+    ]
+  },
+  {
+    label: "Gestion",
+    items: [
+      { name: "Tâches", href: "/tasks", icon: CheckSquare },
+      { name: "Clients", href: "/clients", icon: UserCircle },
+      { name: "Factures", href: "/invoices", icon: FileText },
+      { name: "Inventaire", href: "/inventory", icon: Package },
+    ]
+  },
+  {
+    label: "Communication",
+    items: [
+      { name: "Messagerie", href: "/messaging", icon: MessageSquare },
+    ]
+  },
+  {
+    label: "Analyse",
+    items: [
+      { name: "Rapports", href: "/reports", icon: BarChart3 },
+      { name: "Paramètres", href: "/settings", icon: Settings },
+    ]
+  },
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -29,62 +56,63 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="sidebar-backdrop"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform duration-300 ease-in-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+      <aside className={cn("sidebar", sidebarOpen ? "sidebar--open" : "sidebar--closed")}>
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
+          <div className="sidebar__header">
+            <div className="sidebar__logo">
+              <LayoutDashboard className="sidebar__logo-icon" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-sidebar-foreground">SmartWork</h1>
-              <p className="text-xs text-sidebar-foreground/60">Plateforme RH</p>
+              <h1 className="sidebar__title">SmartWork</h1>
+              <p className="sidebar__subtitle">Plateforme RH</p>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+          <nav className="sidebar__nav">
+            {navigationGroups.map((group, groupIndex) => (
+              <div key={group.label} className="sidebar__group">
+                <p className="sidebar__group-label">{group.label}</p>
+                <div className="sidebar__group-items">
+                  {group.items.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={cn(
+                          "sidebar__link relative",
+                          isActive && "sidebar__link--active"
+                        )}
+                      >
+                        <item.icon className="sidebar__link-icon" />
+                        <span className="sidebar__link-text">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {groupIndex < navigationGroups.length - 1 && (
+                  <div className="sidebar__divider" />
+                )}
+              </div>
+            ))}
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary">
-                <span className="text-sm font-semibold text-primary-foreground">A</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">Admin</p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">admin@smartwork.com</p>
+          {/* User Footer */}
+          <div className="sidebar__footer">
+            <div className="sidebar__user">
+              <div className="sidebar__avatar">A</div>
+              <div className="sidebar__user-info">
+                <p className="sidebar__user-name">Administrateur</p>
+                <p className="sidebar__user-email">admin@smartwork.com</p>
               </div>
             </div>
           </div>
@@ -92,12 +120,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="main-content">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
+        <header className="topbar">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden rounded-lg p-2 hover:bg-muted"
+            className="topbar__menu-btn"
+            aria-label="Ouvrir le menu"
           >
             <Menu className="h-6 w-6" />
           </button>
